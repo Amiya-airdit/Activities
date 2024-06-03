@@ -26,11 +26,10 @@ async function connectToMongoDB() {
 
 module.exports = cds.service.impl(async function () {
   await connectToMongoDB();
-
   this.on("READ", "activity", async (req) => {
     try {
       let query = {}; // For search operation and for update as well of particular/ Unique data
-
+  
       // Extract conditions from the req.query.SELECT.where clause if it exists
       if (req.query.SELECT.where) {
         const whereClause = req.query.SELECT.where;
@@ -44,32 +43,47 @@ module.exports = cds.service.impl(async function () {
           }
         }
       }
-
+  
       console.log("Query based on conditions:", query);
-
+  
       // Fetch documents based on constructed query
       const documents = await mongoCollection
         .find(query)
         .sort({ createdTime: -1 })
         .toArray();
-      console.log("Fetched documents:", documents);
-
+  
+      // Format the date in the documents
+      const formattedDocuments = documents.map((doc) => ({
+        ...doc,
+        createdTime: formatDate(doc.createdTime),
+      }));
+  
+      console.log("Fetched documents:", formattedDocuments);
+  
       // Calculate the total count of records matching the query
       const totalCount = await mongoCollection.countDocuments(query);
       console.log(totalCount, "---------------count");
-
-      const result = documents.map((doc) => ({
-        ...doc,
-      }));
-
-      result["$count"] = totalCount; // Include $count for CAP consumption
-      return result;
+  
+      // Include $count for CAP consumption
+      formattedDocuments["$count"] = totalCount;
+  
+      return formattedDocuments;
     } catch (err) {
       console.error("Error reading documents from MongoDB", err);
       req.error(500, "Unable to fetch data");
       return [];
     }
   });
+  
+  // Function to format date to "31/11/2023"
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  
 
   this.on("disconnect", async () => {
     if (client) {

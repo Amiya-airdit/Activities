@@ -13,7 +13,7 @@ service activityService {
             // formzCategory        : String;
             // category             : String;
             // isVisible            : Boolean;
-            createdTime          : Timestamp;
+            createdTime          : Date;
             // formType             : String;
             // type                 : String;
     }

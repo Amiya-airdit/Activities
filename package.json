@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
-    "@sap/cds": "^7",
+    "@sap/cds": "^7.9.2",
     "express": "^4",
     "mongodb": "^6.6.2"
   },
